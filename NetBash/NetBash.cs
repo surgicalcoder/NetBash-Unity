@@ -14,7 +14,10 @@ namespace NetBash
     public partial class NetBash
     {
         private List<Type> _commandTypes;
-        private static Type _attributeType = typeof(WebCommandAttribute);
+    	private List<MethodInfo> _commandMethods;
+        //private static Type _attributeType = typeof(WebCommandAttribute);
+    	private static Type _attributeTypeType = typeof (WebCommandTypeAttribute);
+    	private static Type _attributeCommandType = typeof (WebCommandAttribute);
         private static Type _interfaceType = typeof(IWebCommand);
 
         public static void Init()
@@ -26,15 +29,26 @@ namespace NetBash
         {
             try
             {
-                _interfaceType = typeof(IWebCommand);
+				_interfaceType = typeof(WebCommandTypeAttribute);
                 var assemblies = AssemblyLocator.GetAssemblies();
 
                 var results = from a in assemblies
                               from t in a.GetTypes()
-                              where _interfaceType.IsAssignableFrom(t)
+							  where t.GetCustomAttributes(_attributeTypeType, false).Any()
                               select t;
 
                 _commandTypes = results.ToList();
+
+				IEnumerable<MethodInfo> enumerable = results.SelectMany
+					(x => x.GetMethods().Where(y => y.GetCustomAttributes(_attributeCommandType, false).Any() ).
+						Where(y=>
+							y.GetParameters().Count() == 1 && 
+							y.GetParameters().Count(z=>z.ParameterType == typeof(string[])) == 1 &&
+							(y.ReturnType == typeof(CommandResult) || y.ReturnType == typeof(string))
+							) 
+						);
+
+            	_commandMethods = enumerable.ToList();
             }
             catch (ReflectionTypeLoadException ex)
             {
@@ -55,14 +69,14 @@ namespace NetBash
             if (string.IsNullOrWhiteSpace(commandText))
                 throw new ArgumentNullException("commandText", "Command text cannot be empty");
 
-            var split = commandText.SplitCommandLine();
+            var split = commandText.SplitCommandLine().ToList();
             var command = (split.FirstOrDefault() ?? commandText).ToLower();
 
             if (command == "help")
                 return renderHelp();
 
             var commandType = (from c in _commandTypes
-                              let attr = (WebCommandAttribute)c.GetCustomAttributes(_attributeType, false).FirstOrDefault()
+							   let attr = (WebCommandTypeAttribute)c.GetCustomAttributes(_attributeTypeType, false).FirstOrDefault()
                               where attr != null
                               && attr.Name.ToLower() == command
                               select c).FirstOrDefault();
@@ -70,15 +84,53 @@ namespace NetBash
             if(commandType == null)
                 throw new ArgumentException(string.Format("Command '{0}' not found", command.ToUpper()));
 
+			if (split.Count() == 1)
+			{
+				return renderHelp(commandType);
+			}
+
             var webCommand = (IWebCommand)Activator.CreateInstance(commandType);
+        	MethodInfo firstOrDefault = _commandMethods.FirstOrDefault(x =>
+        	                                                           	{
+        	                                                           		var webCommandCommandAttribute = (WebCommandAttribute) x.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
+        	                                                           		return webCommandCommandAttribute != null && (x.DeclaringType == commandType && webCommandCommandAttribute.Name == split[1]);
+        	                                                           	});
 
-            var result = new CommandResult() { IsHtml = webCommand.ReturnHtml };
-            result.Result = webCommand.Process(split.Skip(1).ToArray());
+        	object invokeMember = firstOrDefault.Invoke(webCommand, new object[] {split.Skip(2).ToArray()});
 
+			CommandResult result = new CommandResult();
+			if (invokeMember is string)
+			{
+				
+				result = new CommandResult() { IsHtml = false, Result = invokeMember.ToString() };
+			}
+			else if (invokeMember is CommandResult)
+			{
+				result = invokeMember as CommandResult;
+			}
+			
             return result;
         }
 
-        private CommandResult renderHelp()
+    	private CommandResult renderHelp(Type commandType)
+    	{
+			var sb = new StringBuilder();
+
+			foreach (var t in _commandMethods.Where(x=>x.DeclaringType == commandType))
+			{
+				var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
+
+				if (attr == null)
+					continue;
+
+				sb.AppendLine(string.Format("{0} - {1}", attr.Name.ToUpper().PadRight(15, ' '), attr.Description));
+			}
+
+			return new CommandResult { Result = sb.ToString(), IsHtml = false };
+
+    	}
+
+    	private CommandResult renderHelp()
         {
             var sb = new StringBuilder();
 
@@ -86,7 +138,7 @@ namespace NetBash
 
             foreach (var t in _commandTypes)
             {
-                var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeType, false).FirstOrDefault();
+				var attr = (WebCommandTypeAttribute)t.GetCustomAttributes(_attributeTypeType, false).FirstOrDefault();
 
                 if(attr == null)
                     continue;

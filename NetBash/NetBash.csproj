@@ -44,10 +44,7 @@
   <ItemGroup>
     <Compile Include="AssemblyLocator.cs" />
     <Compile Include="CommandResult.cs" />
-    <Compile Include="Commands\ReloadCommands.cs" />
-    <Compile Include="Commands\ServerCommand.cs" />
-    <Compile Include="Commands\ShortcutsCommand.cs" />
-    <Compile Include="Commands\TimeCommand.cs" />
+    <Compile Include="Commands\CoreCommands.cs" />
     <Compile Include="Commands\UpTimeCommand.cs" />
     <Compile Include="Formatting\SparkExtensions.cs" />
     <Compile Include="Formatting\TableExtensions.cs" />

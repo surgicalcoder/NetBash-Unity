@@ -7,7 +7,7 @@ namespace NetBash
 {
     public interface IWebCommand
     {
-        string Process(string[] args);
-        bool ReturnHtml { get; }
+		//string Process(string[] args);
+		//bool ReturnHtml { get; }
     }
 }
