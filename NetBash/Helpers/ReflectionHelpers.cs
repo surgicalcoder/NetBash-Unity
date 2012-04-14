@@ -34,5 +34,14 @@ namespace NetBash.Helpers
                                          return false;
                                      });
         }
+
+        public static T GetAttribute<T>(this ICustomAttributeProvider Provider, bool Inherit = true) where T : Attribute
+        {
+            if (!Provider.IsDefined(typeof(T), Inherit))
+                return default(T);
+            else
+                return Provider.GetCustomAttributes(typeof (T), false).Select(x => (T) x).FirstOrDefault();
+        }
+
     }
 }

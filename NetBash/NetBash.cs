@@ -15,10 +15,8 @@ namespace NetBash
 	{
 		private List<Type> _commandTypes;
 		private List<MethodInfo> _commandMethods;
-		//private static Type _attributeType = typeof(WebCommandAttribute);
-		private static Type _attributeTypeType = typeof (WebCommandTypeAttribute);
-		private static Type _attributeCommandType = typeof (WebCommandAttribute);
-		private static Type _interfaceType = typeof(IWebCommand);
+		private static readonly Type _attributeTypeType = typeof (WebCommandTypeAttribute);
+		private static readonly Type _attributeCommandType = typeof (WebCommandAttribute);
 
 		public static void Init()
 		{
@@ -29,7 +27,6 @@ namespace NetBash
 		{
 			try
 			{
-				_interfaceType = typeof(WebCommandTypeAttribute);
 				var assemblies = AssemblyLocator.GetAssemblies();
 
 				_commandTypes = assemblies.SelectMany(x => x.GetTypes().MarkedWith<WebCommandTypeAttribute>()).ToList();
@@ -63,18 +60,23 @@ namespace NetBash
 
 			var split = commandText.SplitCommandLine().ToList();
 			var command = (split.FirstOrDefault() ?? commandText).ToLower();
+		    var subcommand = (split.Count < 2 ? "" : split.Skip(1).Take(1).ToString());
+		    var args = (split.Count < 3 ? new string[0] : split.Skip(2));
+
 
 			if (command == "help")
 				return renderHelp();
 
 			var commandType = (from c in _commandTypes
-							   let attr = (WebCommandTypeAttribute)c.GetCustomAttributes(_attributeTypeType, false).FirstOrDefault()
-							  where attr != null
-							  && attr.Name.ToLower() == command
-							  select c).FirstOrDefault();
+						 let attr = c.GetAttribute<WebCommandTypeAttribute>()
+						 where attr != null && attr.Name.ToLower() == command
+						 select c
+						).FirstOrDefault();
 
 			if(commandType == null)
-				throw new ArgumentException(string.Format("Command '{0}' not found", command.ToUpper()));
+			{
+			    throw new ArgumentException(string.Format("Command '{0}' not found", command.ToUpper()));
+			}
 
 			if (split.Count() == 1)
 			{
@@ -82,19 +84,20 @@ namespace NetBash
 			}
 
 			var webCommand = (IWebCommand)Activator.CreateInstance(commandType);
-			MethodInfo firstOrDefault = _commandMethods.FirstOrDefault(x =>
-																		{
-																			var webCommandCommandAttribute = (WebCommandAttribute) x.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
-																			return webCommandCommandAttribute != null && (x.DeclaringType == commandType && webCommandCommandAttribute.Name == split[1]);
-																		});
 
-			object invokeMember = firstOrDefault.Invoke(webCommand, new object[] {split.Skip(2).ToArray()});
+		    MethodInfo method =
+		        _commandMethods.FirstOrDefault(
+		            x =>
+		            x.GetAttribute<WebCommandAttribute>() != null && x.GetAttribute<WebCommandAttribute>().Name == subcommand &&
+		            x.DeclaringType == commandType);
+
+            object invokeMember = method.Invoke(webCommand, new object[] { args.ToArray() });
 
 			CommandResult result = new CommandResult();
+
 			if (invokeMember is string)
 			{
-				
-				result = new CommandResult() { IsHtml = false, Result = invokeMember.ToString() };
+				result = new CommandResult { IsHtml = false, Result = invokeMember.ToString() };
 			}
 			else if (invokeMember is CommandResult)
 			{
