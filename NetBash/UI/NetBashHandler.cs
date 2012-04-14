@@ -133,6 +133,11 @@ namespace NetBash.UI
                     //on your way
                     commandResponse = result.Result;
                 }
+                else if (result.IsError)
+                {
+                    commandResponse = result.Result.Replace("\r\n","<br />\r\n");
+                    success = false;
+                }
                 else
                 {
                     //encode it

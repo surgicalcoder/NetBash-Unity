@@ -8,7 +8,7 @@ using System.Web;
 namespace NetBash.Commands
 {
 	[WebCommandType("core", "Core Commands")]
-	public class CoreCommands : IWebCommand
+	public class CoreCommands
 	{
 
 		[WebCommand("reload", "Reloads command assemblies")]
@@ -17,6 +17,12 @@ namespace NetBash.Commands
 			NetBash.Current.LoadCommands();
 			return "Commands loaded, type 'help' to see them";
 		}
+
+        [WebCommand("NameTest","Returns Your Name")]
+        public string Test(string name)
+        {
+            return string.Format("Hello, {0}", name);
+        }
 
 		[WebCommand("server", "Displays server info")]
 		public string Server(string[] args)
