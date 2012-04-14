@@ -32,23 +32,15 @@ namespace NetBash
 				_interfaceType = typeof(WebCommandTypeAttribute);
 				var assemblies = AssemblyLocator.GetAssemblies();
 
-				var results = from a in assemblies
-							  from t in a.GetTypes()
-							  where t.GetCustomAttributes(_attributeTypeType, false).Any()
-							  select t;
+				_commandTypes = assemblies.SelectMany(x => x.GetTypes().MarkedWith<WebCommandTypeAttribute>()).ToList();
 
-				_commandTypes = results.ToList();
-
-				IEnumerable<MethodInfo> enumerable = results.SelectMany
-					(x => x.GetMethods().Where(y => y.GetCustomAttributes(_attributeCommandType, false).Any() ).
-						Where(y=>
-							y.GetParameters().Count() == 1 && 
-							y.GetParameters().Count(z=>z.ParameterType == typeof(string[])) == 1 &&
+				_commandMethods = _commandTypes.SelectMany(x => x.GetMethods().MarkedWith<WebCommandAttribute>())
+					.Where(y=>
+						y.GetParameters().Count() == 1 &&
+							y.GetParameters().Count(z => z.ParameterType == typeof(string[])) == 1 &&
 							(y.ReturnType == typeof(CommandResult) || y.ReturnType == typeof(string))
-							) 
-						);
-
-				_commandMethods = enumerable.ToList();
+						)
+					.ToList();
 			}
 			catch (ReflectionTypeLoadException ex)
 			{
