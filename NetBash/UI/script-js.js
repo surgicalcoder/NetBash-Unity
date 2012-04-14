@@ -98,7 +98,7 @@ function NetBash($, window, opt) {
         self.scrollBottom();
 
         //clear command
-        if (text == "clear") {
+        if (text.toLowerCase() == "clear") {
             $("#console-result").html("");
             clearStorage();
         } else {
