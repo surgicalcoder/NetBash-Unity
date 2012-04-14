@@ -45,7 +45,6 @@
     <Compile Include="AssemblyLocator.cs" />
     <Compile Include="CommandResult.cs" />
     <Compile Include="Commands\CoreCommands.cs" />
-    <Compile Include="Commands\UpTimeCommand.cs" />
     <Compile Include="Formatting\SparkExtensions.cs" />
     <Compile Include="Formatting\TableExtensions.cs" />
     <Compile Include="Helpers\ReflectionHelpers.cs" />

@@ -18,11 +18,11 @@ namespace NetBash.Commands
 			return "Commands loaded, type 'help' to see them";
 		}
 
-        [WebCommand("NameTest","Returns Your Name")]
-        public string Test(string name)
-        {
-            return string.Format("Hello, {0}", name);
-        }
+		[WebCommand("NameTest","Returns Your Name")]
+		public string Test(string Name)
+		{
+			return string.Format("Hello, {0}", Name);
+		}
 
 		[WebCommand("server", "Displays server info")]
 		public string Server(string[] args)

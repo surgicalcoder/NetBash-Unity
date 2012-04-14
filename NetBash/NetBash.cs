@@ -108,10 +108,9 @@ namespace NetBash
                     returnValue = new CommandResult()
                                       {
                                           IsError = true,
-                                          Result =
-                                              string.Format(
-                                                  "Invalid Number of Parameters Supplied.\r\nParameters that are required are:\r\n{0}",
-                                                  builder.ToString())
+                                          Result = string.Format(
+                                                  "Invalid Number of Parameters Supplied.\r\nParameters that are required are {1}:\r\n{0}",
+                                                  builder.ToString(), method.GetParameters().Count())
                                       };
                     //throw new ApplicationException(string.Format("Invalid number of parameters supplied\r\n{0}", builder.ToString()));
                 }

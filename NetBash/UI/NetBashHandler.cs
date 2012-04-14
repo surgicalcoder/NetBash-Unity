@@ -135,7 +135,7 @@ namespace NetBash.UI
                 }
                 else if (result.IsError)
                 {
-                    commandResponse = result.Result.Replace("\r\n","<br />\r\n");
+                    commandResponse = HttpUtility.HtmlEncode(result.Result).Replace("\r\n","<br />\r\n");
                     success = false;
                 }
                 else
