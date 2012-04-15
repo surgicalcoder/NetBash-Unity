@@ -39,7 +39,7 @@ NetBash will look for any classes that are decorated with the WebCommandType att
 
 ```csharp
 [WebCommandType("core", "Core Commands")]
-public class CoreCommands : IWebCommand
+public class CoreCommands
 {
 
 	[WebCommand("test", "Does a test")]
