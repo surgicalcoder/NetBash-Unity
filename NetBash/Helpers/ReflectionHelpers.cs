@@ -34,6 +34,11 @@ namespace NetBash.Helpers
                                          return false;
                                      });
         }
+        
+        public static IEnumerable<PropertyInfo> MarkedWith<T>(this IEnumerable<PropertyInfo> Properties, bool Inherit = true) where T : Attribute
+        {
+            return Properties == null ? null : Properties.Where(x => x.IsDefined(typeof(T), Inherit));
+        }
 
         public static T GetAttribute<T>(this ICustomAttributeProvider Provider, bool Inherit = true) where T : Attribute
         {
