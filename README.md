@@ -30,6 +30,23 @@ You also need to add the render includes code somewhere on your page (_Layout.cs
 ```
 @NetBash.RenderIncludes()
 ```
+
+#### Using Unity
+
+There's now a static Method that takes in a IUnityContainer :
+
+```csharp
+NetBash.SetUnityContainer(container);
+```
+
+Once your IoC container is all set up with the mappings thats required, simply call the above, and it will get stored. To use it in your code, inside a WebMethod, simply decorate the property like so:
+
+```csharp
+[Dependency]
+public IRepository Service { get; set; }
+```
+
+And NetBash will call the IoC container to resolve the dependency automatically! Couldn't be any simpler!
 	
 #### Usage
 NetBash commands are sent using this format - "[class name] [command name] [arg1] [arg2] etc". You can see which commands are currently loaded by typing "help". There are also a few keyboard shortcuts (which can be viewed with "shortcuts" the most useful being "`" to open and focust the console. If you wish to know all the commands available in a class, simply type the class name, ie. "core".
