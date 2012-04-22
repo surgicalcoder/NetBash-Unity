@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NetBash")]
+[assembly: AssemblyTitle("NetBash-Unity")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NetBash-DotNetPro")]
+[assembly: AssemblyProduct("NetBash-Unity-DotNetPro")]
 [assembly: AssemblyCopyright("Copyright ©  2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
