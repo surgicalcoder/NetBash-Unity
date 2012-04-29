@@ -33,8 +33,6 @@ namespace NetBash
 
 				_commandMethods = _commandTypes.SelectMany(x => x.GetMethods().MarkedWith<WebCommandAttribute>())
 					.Where(y=>
-					//	y.GetParameters().Count() == 1 &&
-					//		y.GetParameters().Count(z => z.ParameterType == typeof(string[])) == 1 &&
 							(y.ReturnType == typeof(CommandResult) || y.ReturnType == typeof(string))
 						)
 					.ToList();
@@ -60,7 +58,7 @@ namespace NetBash
 
 			var split = commandText.SplitCommandLine().ToList();
 			var command = (split.FirstOrDefault() ?? commandText).ToLower();
-		    var subcommand = (split.Count < 2 ? "" : split.Skip(1).Take(1).FirstOrDefault());
+		    var subcommand = (split.Count < 2 ? "" : split.Skip(1).Take(1).FirstOrDefault()).ToLower();
 		    var args = (split.Count < 3 ? new string[0] : split.Skip(2)).ToArray();
 
 
@@ -88,7 +86,7 @@ namespace NetBash
 		    MethodInfo method =
 		        _commandMethods.FirstOrDefault(
 		            x =>
-		            x.GetAttribute<WebCommandAttribute>() != null && x.GetAttribute<WebCommandAttribute>().Name.ToLower() == subcommand &&
+		            (x.GetAttribute<WebCommandAttribute>() != null && (x.GetAttribute<WebCommandAttribute>().Name != null && x.GetAttribute<WebCommandAttribute>().Name.ToLower() == subcommand) || (x.GetAttribute<WebCommandAttribute>().Name == null && x.Name.ToLower() == subcommand)) &&
 		            x.DeclaringType == commandType);
 
             object returnValue;
@@ -110,9 +108,8 @@ namespace NetBash
                                           IsError = true,
                                           Result = string.Format(
                                                   "Invalid Number of Parameters Supplied.\r\nParameters that are required are {1}:\r\n{0}",
-                                                  builder.ToString(), method.GetParameters().Count())
+                                                  builder, method.GetParameters().Count())
                                       };
-                    //throw new ApplicationException(string.Format("Invalid number of parameters supplied\r\n{0}", builder.ToString()));
                 }
                 else
                 {
@@ -146,10 +143,10 @@ namespace NetBash
 			{
 				var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
 
-				if (attr == null)
-					continue;
+			    string name = attr.Name == null ? t.Name : attr.Name;
+			    string description = attr.Description ?? "No Description Found";
 
-				sb.AppendLine(string.Format("{0} - {1}", attr.Name.ToUpper().PadRight(15, ' '), attr.Description));
+                sb.AppendLine(string.Format("{0} - {1}", name.ToUpper().PadRight(15, ' '), description));
 			}
 
 			return new CommandResult { Result = sb.ToString(), IsHtml = false };
