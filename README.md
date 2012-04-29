@@ -63,6 +63,7 @@ I need to document this - but basically its the same as NetBash, but everythings
 
 - Reworked the reflection side of things to make things alot smoother and more reliable.
 - Removed the requirement to inherit from IWebCommand - completely pointless thanks to the refactoring
+- Added CommandResult.IsError - which will format stuff in Red for you, for errors and such.
 - Added the ability to have named parameters, instead of only accepting a string[], ie:
 
 ```csharp
