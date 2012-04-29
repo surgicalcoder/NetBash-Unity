@@ -91,6 +91,19 @@ I need to document this - but basically its the same as NetBash, but everythings
         }
 ```
 
+##### v1.2 - 2011-04-29
+- Removed the requirement for WebCommandAttirbute's Name and Description, so now you can do:
+
+```csharp
+        [WebCommand]
+        public string Test(string Name)
+        {
+            return string.Format("Hello, {0}", Name);
+        }
+```
+
+- It will show up as "Test" with a description of "No Description Found"
+
 ##### Plan for vNext
 - Ability to have basic value types for parametes ie. DateTime, int, etc.
 - Add validation for parameters - ie. make some required, some optional

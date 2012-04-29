@@ -59,8 +59,10 @@ namespace NetBash
 
 			var split = commandText.SplitCommandLine().ToList();
 			var command = (split.FirstOrDefault() ?? commandText).ToLower();
-			var subcommand = (split.Count < 2 ? "" : split.Skip(1).Take(1).FirstOrDefault());
-			var args = (split.Count < 3 ? new string[0] : split.Skip(2)).ToArray();
+
+		    var subcommand = (split.Count < 2 ? "" : split.Skip(1).Take(1).FirstOrDefault()).ToLower();
+		    var args = (split.Count < 3 ? new string[0] : split.Skip(2)).ToArray();
+
 
 
 			if (command == "help")
@@ -84,50 +86,51 @@ namespace NetBash
 
 			var webCommand = Activator.CreateInstance(commandType);
 
-			foreach (var propertyInfo in webCommand.GetType().GetProperties().MarkedWith<DependencyAttribute>())
-			{
-				propertyInfo.SetValue(webCommand, unityContainer.Resolve(propertyInfo.PropertyType, new ResolverOverride[] { }), null);
-			}
+            foreach (var propertyInfo in webCommand.GetType().GetProperties().MarkedWith<DependencyAttribute>())
+			            {
+				            propertyInfo.SetValue(webCommand, unityContainer.Resolve(propertyInfo.PropertyType, new ResolverOverride[] { }), null);
+			            }
 
-			MethodInfo method =
-				_commandMethods.FirstOrDefault(
-					x =>
-					x.GetAttribute<WebCommandAttribute>() != null && x.GetAttribute<WebCommandAttribute>().Name.ToLower() == subcommand &&
-					x.DeclaringType == commandType);
+		    MethodInfo method =
+		        _commandMethods.FirstOrDefault(
+		            x =>
+		            (x.GetAttribute<WebCommandAttribute>() != null && (x.GetAttribute<WebCommandAttribute>().Name != null && x.GetAttribute<WebCommandAttribute>().Name.ToLower() == subcommand) || (x.GetAttribute<WebCommandAttribute>().Name == null && x.Name.ToLower() == subcommand)) &&
+		            x.DeclaringType == commandType);
 
-			object returnValue;
-			if (method.GetParameters().Count() == 1 && method.GetParameters().Count(x => x.ParameterType == typeof(string[])) == 1)
-			{
-				returnValue = method.Invoke(webCommand, new object[] { args.ToArray() });    
-			}
-			else
-			{
-				if (method.GetParameters().Count() != args.Count())
-				{
-					StringBuilder builder = new StringBuilder();
-					foreach (var parameterInfo in method.GetParameters())
-					{
-						builder.AppendLine(parameterInfo.Name);
-					}
-					returnValue = new CommandResult()
-									  {
-										  IsError = true,
-										  Result = string.Format(
-												  "Invalid Number of Parameters Supplied.\r\nParameters that are required are {1}:\r\n{0}",
-												  builder, method.GetParameters().Count())
-									  };
-				}
-				else
-				{
-					object[] objArray = new object[args.Count()];
-					args.CopyTo(objArray, 0);
+            object returnValue;
+            if (method.GetParameters().Count() == 1 && method.GetParameters().Count(x => x.ParameterType == typeof(string[])) == 1)
+            {
+                returnValue = method.Invoke(webCommand, new object[] { args.ToArray() });    
+            }
+            else
+            {
+                if (method.GetParameters().Count() != args.Count())
+                {
+                    StringBuilder builder = new StringBuilder();
+                    foreach (var parameterInfo in method.GetParameters())
+                    {
+                        builder.AppendLine(parameterInfo.Name);
+                    }
+                    returnValue = new CommandResult()
+                                      {
+                                          IsError = true,
+                                          Result = string.Format(
+                                                  "Invalid Number of Parameters Supplied.\r\nParameters that are required are {1}:\r\n{0}",
+                                                  builder, method.GetParameters().Count())
+                                      };
+                }
+                else
+                {
+                    object[] objArray = new object[args.Count()];
+                    args.CopyTo(objArray, 0);
 
-					returnValue = method.Invoke(webCommand, objArray);
-				}
-			}
+                    returnValue = method.Invoke(webCommand, objArray);
+                }
+            }
 
-			
-			CommandResult result = new CommandResult();
+            
+		    CommandResult result = new CommandResult();
+
 
 			if (returnValue is string)
 			{
@@ -143,19 +146,24 @@ namespace NetBash
 
 		private CommandResult renderHelp(Type commandType)
 		{
-			var sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-			foreach (var t in _commandMethods.Where(x=>x.DeclaringType == commandType))
-			{
-				var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
+            foreach (var t in _commandMethods.Where(x => x.DeclaringType == commandType))
+            {
+                var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
 
-				if (attr == null)
-					continue;
+                if (attr == null)
+                {
+                    continue;
+                }
 
-				sb.AppendLine(string.Format("{0} - {1}", attr.Name.ToUpper().PadRight(15, ' '), attr.Description));
-			}
+                string name = attr.Name ?? t.Name;
+                string description = attr.Description ?? "No Description Found";
 
-			return new CommandResult { Result = sb.ToString(), IsHtml = false };
+                sb.AppendLine(string.Format("{0} - {1}", name.ToUpper().PadRight(15, ' '), description));
+            }
+
+            return new CommandResult { Result = sb.ToString(), IsHtml = false };
 
 		}
 

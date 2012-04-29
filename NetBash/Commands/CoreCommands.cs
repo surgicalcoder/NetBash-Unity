@@ -18,7 +18,7 @@ namespace NetBash.Commands
 			return "Commands loaded, type 'help' to see them";
 		}
 
-		[WebCommand("NameTest","Returns Your Name")]
+		[WebCommand]
 		public string Test(string Name)
 		{
 			return string.Format("Hello, {0}", Name);
