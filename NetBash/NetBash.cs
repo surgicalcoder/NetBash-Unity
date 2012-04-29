@@ -142,8 +142,13 @@ namespace NetBash
 			foreach (var t in _commandMethods.Where(x=>x.DeclaringType == commandType))
 			{
 				var attr = (WebCommandAttribute)t.GetCustomAttributes(_attributeCommandType, false).FirstOrDefault();
-
-			    string name = attr.Name == null ? t.Name : attr.Name;
+                
+                if (attr == null)
+                {
+                    continue;
+                }
+			    
+                string name = attr.Name ?? t.Name;
 			    string description = attr.Description ?? "No Description Found";
 
                 sb.AppendLine(string.Format("{0} - {1}", name.ToUpper().PadRight(15, ' '), description));
